@@ -75,7 +75,6 @@ jobs:
 
   terraform:
     name: Terraform plan
-    runs-on: self-hosted
     timeout-minutes: 5
     needs: build-deploy
 

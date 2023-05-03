@@ -75,6 +75,7 @@ jobs:
 
   terraform:
     name: Terraform plan
+    runs-on: self-hosted
     timeout-minutes: 5
     needs: build-deploy
 
@@ -120,13 +121,13 @@ jobs:
         id: validate
         run: terraform validate
 
-      - name: Terraform Plan
-        id: plan
-        run: terraform plan
-
-      - name: Terraform Apply
-        id: apply
-        run: terraform apply -auto-approve
+#      - name: Terraform Plan
+#        id: plan
+#        run: terraform plan
+#
+#      - name: Terraform Apply
+#        id: apply
+#        run: terraform apply -auto-approve
 
 
 

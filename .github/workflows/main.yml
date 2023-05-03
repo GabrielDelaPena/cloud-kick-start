@@ -7,6 +7,10 @@ on:
 
 env:
   TAG_NAME: v${{ github.run_number }}
+  AWS_REGION: "eu-west-1"
+  AWS_ROLE: "arn:aws:iam::930970667460:role/stage-cloud-kickstart-components-2023-role"
+  TF_DIR: "terraform"
+  NODE_VERSION: "lts/*"
 
 jobs:
   build-deploy:
@@ -69,6 +73,61 @@ jobs:
           push: true
           tags: gabriel123125/cloud:latest
 
+  terraform:
+    name: Terraform plan
+    runs-on: self-hosted
+    timeout-minutes: 5
+    needs: build-deploy
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: ${{ env.TF_DIR }}
+
+    permissions:
+      contents: read
+      id-token: write  # This is required for requesting the JWT
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3 # v3.5.0
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e1e17a757e536f70e52b5a12b2e8d1d1c60e04ef # v2
+        with:
+          role-to-assume: ${{ env.AWS_ROLE }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@2f9f10ea3fa2eed41ac443fee8bfbd059af2d0a4 # v1.6.0
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Terraform Init
+        id: init
+        run: terraform init
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve
 
 
 
